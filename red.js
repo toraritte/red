@@ -12,17 +12,23 @@ var s = (function() {
     var callerArgs = cherry.caller.arguments,
         cherryArgs = [].slice.call(callerArgs, reserve),
         f = cherryArgs[0],
-        n = this.nodes;
+        c = this,
+        n = c.nodes;
 
     if (f === undefined)
-      return n;
+      return [c.last()];
 
     if (cherryArgs.length === 1){
-      if (typeof f === 'function'){
-        return n.filter(f);
-      }
-      if (typeof f === 'number'){
-        return n[f];
+      switch (typeof f){
+        case 'function':
+          return n.filter(f);
+          break;
+        case 'number':
+          return n[f];
+          break;
+        case 'string':
+          return n;
+          break;
       }
     }
 
@@ -73,15 +79,7 @@ var s = (function() {
         //         multiple calls
         a[0] = a[0].concat([pick]);
       return c.lace.apply(c, a[0]);
-    }
-    /* lace test
-    var a = s('+div').lace(s('+p').last());
-    var b = s('+div')('+div').lace(s('+p').last());
-    var c = s('+div')('+div').lace(s('+p').last(),0);
-    var d = s('+div')('+div').lace(c.nodes);
-    var e = s('+div')('+div').lace(d.nodes,0);
-    [a,b,c,d,e].forEach(function(e) {console.log(e.nodes.map(function(e) {return e.outerHTML}))})
-    */
+    }/*TEST 001*/
 
     var node = (numPick) ? cherry.call(this, a.length-1) : c.last();
 
@@ -99,14 +97,15 @@ var s = (function() {
     var n = cherry.call(this, 1),
         c = this;
 
-    for (var i in n) {
-        n[i].innerHTML = str;
-    }
+    n.forEach(function(elem){
+      elem.innerHTML = str;
+    })
     return c;
   }
 
   // TODO: function to remove attribute (recursive?) proposed name: krab
 
+  // default behavious should be to modify last node only
   function bark(attribute, value) {
     var c = this,
         n = cherry.call(c,2),
@@ -122,7 +121,10 @@ var s = (function() {
     c.follow = bark;
     return c;
   }
-
+  // '+div!div-div-div!p-p;div-form'.match(/(\+|;|!|-)\w+/g)
+  //> ["+div", "!div", "-div", "-div", "!p", "-p", ";div", "-form"]
+  // '+div'.match(/(\+|;|!|-)\w+/g)
+  //> ["+div"]
   function parseArgs(arg) {
     var c = this;
 
@@ -242,3 +244,26 @@ s('.headingcolor').nodes.map(function(e) {
        "<div id="pittyputty">aletta gyonyoru</div>"]
    the 0 after balabab can be omitted 
    */
+
+// TESTS =============================================================
+
+    /* TEST 001   lace test
+    var a = s('+div').lace(s('+p').last());
+    var b = s('+div')('+div').lace(s('+p').last());
+    var c = s('+div')('+div').lace(s('+p').last(),0);
+    var d = s('+div')('+div').lace(c.nodes);
+    var e = s('+div')('+div').lace(d.nodes,0);
+    [a,b,c,d,e].forEach(function(e) {console.log(e.nodes.map(function(e) {return e.outerHTML}))})
+    */
+
+    /* TEST 002   bark, puff tests
+    [s('+p').bark('class','lofa').puff('balabab'),
+     s('+div')('+p').bark('class','lofa').puff('balabab'),
+     s('+div')('+p').bark('class','lofa','all').puff('balabab'),
+     s('+div')('+p').bark('class','lofa','all').puff('balabab','all')]
+     .map(function(a) {
+       return a.nodes.map(function(b){
+         return b.outerHTML;
+       }).join();
+     }).join('\n')
+    */
