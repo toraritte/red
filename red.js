@@ -53,11 +53,7 @@ var s = (function() {
 
   function spawn(tag) {
     var c = this;
-  //TODO
-  // (1) hide node calls. Instead of s('+p').node() lets use it s('+p') resolving nodes internally
-  //  
-  // (2) hierarchical call? s('+div')('+p') => <div><p></p><div> meg hogy van e ertelme...
-  //s(lofa)('+p') - letezo elembe tenni egy ujat (vagy lace is eleg?)
+
     c.nodes.push(document.createElement(tag));
     return c;
   }
@@ -94,8 +90,8 @@ var s = (function() {
   // (1) insertAdjacent{HTML,Text,Element}
   // (2) * - as in 'explode' with content
   function puff(str) { /*USE_006*/
-    var n = cherry.call(this, 1),
-        c = this;
+    var c = this,
+        n = cherry.call(c, 1);
 
     n.forEach(function(elem){
       elem.innerHTML = str;
@@ -170,21 +166,6 @@ var s = (function() {
     return chainer;
   }
 })()
-
-/*
-(function(){
-  function a(){return c};
-  function c(){};
-  return function b() { return a}
-})()()()()*/
-
-/*
-function a() {return this};
-a();             //> window
-
-function b() {};
-a.bind(b)();     //> function b() {}
-*/
 
 // === most of the examples work on www.google.com
 /*USE_001*/
