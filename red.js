@@ -156,18 +156,6 @@ var s = (function() {
       return chainer.follow.apply(chainer, arguments);
     };
 
-    // This closure may be totally useless, although could
-    //+ be useful for testing.
-    // cherrypick functionality in order to store custom node in it
-    function node(elem){ /*USE_005*/
-      if (elem)
-        chainer.nodes.push(elem);
-      chainer.node = function(n) {
-        return (n) ? node(n) : elem;
-      }
-      return chainer;
-    }
-
     chainer.lace      = lace;
     chainer.bark      = bark;      /*USE_004*/
     chainer.follow    = parseArgs; /*USE_006*/
@@ -233,13 +221,6 @@ s('.headingcolor').nodes.map(function(e) {
   var toSanitize = s();    // b.nodes === []
   toSanitize.nodes.push(node1, node2, etc);
   toSanitize.bark('class', 'id');
-*/
-
-/*USE_005*/
-/*var a = s(lga);
-  var b = s('+p');
-  a.node(b.node()).nodes;
-  //> [<div class id="lga">...</div>, <p></p>]
 */
 
 /*USE_006*/
