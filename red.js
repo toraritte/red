@@ -64,13 +64,13 @@ var s = (function() {
   // ======================================================================
   function lace() {// s(lga).lace('+div') vagy inkabb s(lga)('>div').bark(...).puff(..)
     var a = [].slice.call(arguments),
-        c = this, // chainer
+        c = this,
         pick = a[a.length-1],
         numPick = (typeof pick === 'number') ? true : false;
 
     if (a[0] instanceof Array){
       if (numPick)
-        // bugfix: .push(pick) modifies chainer.nodes in place
+        // bugfix: .push(pick) modifies c.nodes in place
         //         nodes will be riddled with random numbers after
         //         multiple calls
         a[0] = a[0].concat([pick]);
@@ -150,20 +150,20 @@ var s = (function() {
 
   return function wrapper(arg) {
 
-    function chainer(){  /*USE_002*/
-      return chainer.follow.apply(chainer, arguments);
+    function c(){  /*USE_002*/
+      return c.follow.apply(c, arguments);
     };
 
-    chainer.lace      = lace;
-    chainer.bark      = bark;      /*USE_004*/
-    chainer.follow    = parseArgs; /*USE_006*/
-    chainer.boundElem = this;      /*USE_001*/
-    chainer.nodes     = [];        /*USE_003*/
-    chainer.last      = last;
-    chainer.puff      = puff;
-    chainer.toString  = function() {return 'chainer'};
-    parseArgs.call(chainer, arg);
-    return chainer;
+    c.lace      = lace;
+    c.bark      = bark;      /*USE_004*/
+    c.follow    = parseArgs; /*USE_006*/
+    c.boundElem = this;      /*USE_001*/
+    c.nodes     = [];        /*USE_003*/
+    c.last      = last;
+    c.puff      = puff;
+    c.toString  = function() {return 'chainer'};
+    parseArgs.call(c, arg);
+    return c;
   }
 })()
 
