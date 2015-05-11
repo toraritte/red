@@ -15,8 +15,10 @@ var s = (function() {
         c = this,
         n = c.nodes;
 
-    if (f === undefined)
-      return [c.last()];
+    if (f === undefined){
+      var e = c.context.elem;
+      return [ (e) ? e : c.last() ];
+    }
 
     if (cherryArgs.length === 1){
       switch (typeof f){
@@ -45,24 +47,17 @@ var s = (function() {
   function last() { return this.nodes[this.nodes.length-1]}
 
   // === wrapper inside operations ===
-  var wrapOps = { "+": spawn,
-                  ">": lace };
-
-  // TODO: parse CSS selectors to add HTML structure
-  //       (check use cases whether it is needed at all...)
-
   function spawn(tag) {
     var c = this;
-
     c.nodes.push(document.createElement(tag));
     return c;
   }
 
-  function proliferate(){//# as a supercharged +
-  //#3p
+  function proliferate(){//* as a supercharged +
+  //*3p
   }
   // ======================================================================
-  function lace() {// s(lga).lace('+div') vagy inkabb s(lga)('>div').bark(...).puff(..)
+  function lace() {
     var a = [].slice.call(arguments),
         c = this,
         pick = a[a.length-1],
@@ -70,12 +65,9 @@ var s = (function() {
 
     if (a[0] instanceof Array){
       if (numPick)
-        // bugfix: .push(pick) modifies c.nodes in place
-        //         nodes will be riddled with random numbers after
-        //         multiple calls
-        a[0] = a[0].concat([pick]);
+        a[0] = a[0].concat([pick]); // push modifies in place
       return c.lace.apply(c, a[0]);
-    }/*TEST 001*/
+    }/*TEST_001*/
 
     var node = (numPick) ? cherry.call(this, a.length-1) : c.last();
 
@@ -88,7 +80,6 @@ var s = (function() {
 
   // TODO:
   // (1) insertAdjacent{HTML,Text,Element}
-  // (2) * - as in 'explode' with content
   function puff(str) { /*USE_006*/
     var c = this,
         n = cherry.call(c, 1);
@@ -100,8 +91,6 @@ var s = (function() {
   }
 
   // TODO: function to remove attribute (recursive?) proposed name: krab
-
-  // default behavious should be to modify last node only
   function bark(attribute, value) {
     var c = this,
         n = cherry.call(c,2),
@@ -122,31 +111,46 @@ var s = (function() {
   // '+div'.match(/(\+|;|!|-)\w+/g)
   //> ["+div"]
   function parseArgs(arg) {
-    var c = this;
+    var c = this,
+        x = c.context;
 
     if (arg instanceof Node) {
+      x.elem = arg;
       c.nodes.push(arg);
     }
 
-    if ((typeof arg     === 'function') &&
-        (arg.toString() === 'chainer')){
-      
-    }
-
     if (typeof arg === 'string') {
-      var opParse = arg.match(/^(.)(.+)/), /* ["+div", "+", "div"] */
-          act     = (opParse) ? wrapOps[opParse[1]] : undefined;
-
-      if (act) {
-        return act.call(c,opParse[2]);
+      try {
+        var elem  = (c.boundElem instanceof Window) ? document : c.boundElem,
+            nlist = elem.querySelectorAll(arg);
+        c.nodes = c.nodes.concat([].slice.call(nlist));
+      } catch (e) {
+        if (e instanceof DOMException){
+          ops.call(c, arg);
+        } else {
+          throw e;
+        }
       }
-
-      var elem  = (c.boundElem instanceof Window) ? document : c.boundElem,
-          nlist = elem.querySelectorAll(arg);
-      c.nodes = c.nodes.concat([].slice.call(nlist));
     }
     return c;
   }
+
+function ops(str){debugger;
+  var       c = this,
+            x = c.context,
+      opParse = str.match(/^(.)(.+)/); /* ["+div", "+", "div"] */
+
+  switch (opParse[1]) {
+    case '+':
+      x.elem = spawn.call(c, opParse[2]).last();
+      break;
+    case '~':
+      var child = spawn.call(c, opParse[2]).nodes.pop();
+      x.elem = x.elem.parentElement.appendChild(child);
+      break;
+  }
+}
+/*TEST_002*/
 
   return function wrapper(arg) {
 
@@ -154,13 +158,15 @@ var s = (function() {
       return c.follow.apply(c, arguments);
     };
 
-    c.lace      = lace;
-    c.bark      = bark;      /*USE_004*/
     c.follow    = parseArgs; /*USE_006*/
     c.boundElem = this;      /*USE_001*/
     c.nodes     = [];        /*USE_003*/
+    c.context   = {elem:   undefined,
+                   prevOp: undefined};
     c.last      = last;
     c.puff      = puff;
+    c.lace      = lace;
+    c.bark      = bark;      /*USE_004*/
     c.toString  = function() {return 'chainer'};
     parseArgs.call(c, arg);
     return c;
@@ -228,7 +234,7 @@ s('.headingcolor').nodes.map(function(e) {
 
 // TESTS =============================================================
 
-    /* TEST 001   lace test
+    /* TEST_001   lace test
     var a = s('+div').lace(s('+p').last());
     var b = s('+div')('+div').lace(s('+p').last());
     var c = s('+div')('+div').lace(s('+p').last(),0);
@@ -247,4 +253,8 @@ s('.headingcolor').nodes.map(function(e) {
          return b.outerHTML;
        }).join();
      }).join('\n')
+    */
+
+    /*TEST_002   ops()
+    s(lga)('~p').puff('lofa')
     */
