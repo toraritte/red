@@ -46,7 +46,6 @@ var s = (function() {
 
   function last() { return this.nodes[this.nodes.length-1]}
 
-  // === wrapper inside operations ===
   function spawn(tag) {
     var c = this;
     c.nodes.push(document.createElement(tag));
@@ -56,7 +55,7 @@ var s = (function() {
   function proliferate(){//* as a supercharged +
   //*3p
   }
-  // ======================================================================
+
   function lace() {
     var a = [].slice.call(arguments),
         c = this,
@@ -78,9 +77,13 @@ var s = (function() {
     return c;
   }
 
+  // TODO: bark+puff
+  //   recursive application (makes any sense?)
+  //   krab would benefit from it (to remove all /selected/ attributes)
+
   // TODO:
   // (1) insertAdjacent{HTML,Text,Element}
-  function puff(str) { /*USE_006*/
+  function puff(str) { /*USE_006*/ /*USE_007*/
     var c = this,
         n = cherry.call(c, 1);
 
@@ -96,8 +99,10 @@ var s = (function() {
         n = cherry.call(c,2),
         bArgs = arguments;
 
-    if (bArgs.length < 2)
-      return c.follow = parseArgs.apply(c,bArgs); /*USE_007*/
+    if (bArgs.length < 2) { /*USE_007*/
+      c.follow = parseArgs;
+      return parseArgs.apply(c,bArgs);
+    }
 
     n.forEach(function(elem){
       Element.prototype.setAttribute.apply(elem, bArgs);
@@ -135,7 +140,7 @@ var s = (function() {
     return c;
   }
 
-function ops(str){debugger;
+function ops(str){ /*USE_008*/
   var       c = this,
             x = c.context,
       opParse = str.match(/^(.)(.+)/); /* ["+div", "+", "div"] */
@@ -147,6 +152,12 @@ function ops(str){debugger;
     case '~':
       var child = spawn.call(c, opParse[2]).nodes.pop();
       x.elem = x.elem.parentElement.appendChild(child);
+      break;
+    case ';':
+      x.elem = x.elem.parentElement.parentElement;
+    case '!':
+      var child = spawn.call(c, opParse[2]).nodes.pop();
+      x.elem = x.elem.appendChild(child);
       break;
   }
 }
@@ -161,7 +172,7 @@ function ops(str){debugger;
     c.follow    = parseArgs; /*USE_006*/
     c.boundElem = this;      /*USE_001*/
     c.nodes     = [];        /*USE_003*/
-    c.context   = {elem:   undefined,
+    c.context   = {elem:   undefined,    // TODO: allow the traversal of the created tree (chained list? how?)
                    prevOp: undefined};
     c.last      = last;
     c.puff      = puff;
@@ -184,7 +195,7 @@ function ops(str){debugger;
    div.headingcolor
    div
      div.indiv
-     (... etc ...)
+     (... etc ...)aletta gyonyoru
 
 s('.headingcolor').nodes.map(function(e) {
   return s.bind(e.nextElementSibling)('[class^="indiv"]').nodes
@@ -221,16 +232,15 @@ s('.headingcolor').nodes.map(function(e) {
 /*USE_007*/
 /* s('+p').puff('balabab').bark('id','alcsi')('name','akarmi')
     ('+div').puff('aletta gyonyoru').bark('id','pittyputty').nodes
-   //> ["<p id="pittyputty" name="akarmi">aletta gyonyoru</p>",
-        "<div id="pittyputty">aletta gyonyoru</div>"]
-   because puff() fills up all the elements by default
-
-   s('+p').puff('balabab',0).bark('id','alcsi')('name','akarmi')
-    ('+div').puff('aletta gyonyoru',1).bark('id','pittyputty').nodes
-   //>["<p id="pittyputty" name="akarmi">balabab</p>",
-       "<div id="pittyputty">aletta gyonyoru</div>"]
-   the 0 after balabab can be omitted 
+   //> ["<p id="pittyputty" name="akarmi">balabab</p>", "<div id="pittyputty">aletta gyonyoru</div>"]
    */
+
+/*USE_008*/
+/*
+ s('+div')('!div')('~div')('~div').bark('id','lofa')
+  ('name','aletta')('!p')('~p').puff('balabab')
+  (';div')('~form').nodes
+ */
 
 // TESTS =============================================================
 
