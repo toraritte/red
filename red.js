@@ -91,7 +91,7 @@ var s = (function() {
       elem.innerHTML = str;
     })
     return c;
-  }
+  }/*TEST_002*/
 
   // TODO: function to remove attribute (recursive?) proposed name: krab
   function bark(attribute, value) {
@@ -111,10 +111,7 @@ var s = (function() {
     c.follow = bark;
     return c;
   }
-  // '+div!div-div-div!p-p;div-form'.match(/(\+|;|!|-)\w+/g)
-  //> ["+div", "!div", "-div", "-div", "!p", "-p", ";div", "-form"]
-  // '+div'.match(/(\+|;|!|-)\w+/g)
-  //> ["+div"]
+
   function parseArgs(arg) {
     var c = this,
         x = c.context;
@@ -143,25 +140,29 @@ var s = (function() {
 function ops(str){ /*USE_008*/
   var       c = this,
             x = c.context,
-      opParse = str.match(/^(.)(.+)/); /* ["+div", "+", "div"] */
+         blow = str.match(/(\+|;|!|~)\w+/g);
 
-  switch (opParse[1]) {
-    case '+':
-      x.elem = spawn.call(c, opParse[2]).last();
-      break;
-    case '~':
-      var child = spawn.call(c, opParse[2]).nodes.pop();
-      x.elem = x.elem.parentElement.appendChild(child);
-      break;
-    case ';':
-      x.elem = x.elem.parentElement.parentElement;
-    case '!':
-      var child = spawn.call(c, opParse[2]).nodes.pop();
-      x.elem = x.elem.appendChild(child);
-      break;
-  }
-}
-/*TEST_002*/
+  blow.forEach(
+    function(s) {
+      var opParse = s.match(/^(.)(.+)/), /* ["+div", "+", "div"] */
+             newt = spawn.call(c, opParse[2]);
+
+      switch (opParse[1]) {
+        case '+':
+          x.elem = newt.last();
+          break;
+        case ';':
+          x.elem = x.elem.parentElement;
+        case '~':
+          x.elem = x.elem.parentElement;
+        case '!':
+          var child = newt.nodes.pop();
+          x.elem = x.elem.appendChild(child);
+          break;
+      }
+    }
+  )
+}/*TEST_003*/
 
   return function wrapper(arg) {
 
@@ -253,7 +254,7 @@ s('.headingcolor').nodes.map(function(e) {
     [a,b,c,d,e].forEach(function(e) {console.log(e.nodes.map(function(e) {return e.outerHTML}))})
     */
 
-    /* TEST 002   bark, puff tests
+    /* TEST_002   bark, puff tests
     [s('+p').bark('class','lofa').puff('balabab'),
      s('+div')('+p').bark('class','lofa').puff('balabab'),
      s('+div')('+p').bark('class','lofa','all').puff('balabab'),
@@ -265,6 +266,18 @@ s('.headingcolor').nodes.map(function(e) {
      }).join('\n')
     */
 
-    /*TEST_002   ops()
-    s(lga)('~p').puff('lofa')
+    /*TEST_003   ops()
+    s('+div')('!div')('~div')('~div').bark('id','lofa')('name','aletta')
+     ('!p')('~p').puff('balabab')
+     (';div')('~form').last()
+
+     s(lga).puff('')('!div').bark('id','lofa')
+                    ('!p')  .puff('aletta nagyon gyonyoru')
+                    ('~p')  .puff('nem is, szebb, mint hofeherke')
+
+     s('+div!div~div~div').bark('id','lofa')('name','aletta')
+      ('!p~p').puff('balabab')
+      (';div~form').last()
+
+     s('+div!div~div~div!p~p;div~form').last()
     */
